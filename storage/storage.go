@@ -1,8 +1,11 @@
-package repository
+package storage
 
-import "cryptoProject/core"
+import (
+	"context"
+	"cryptoProject/internal/entities"
+)
 
-type CurrencyData struct { // Data Transfer Object (DTO) для ответа
+type CoinData struct { // Data Transfer Object (DTO) для ответа
 	CurrentPrice float64
 	HourlyChange *float64 // |
 	DayMin       *float64 // | nil, если не запрошено
@@ -25,8 +28,8 @@ func WithDailyChange() QueryOption {
 }
 
 type CurrencyRepository interface {
-	SaveRate(c *core.Currency) error
-	Get(id string, opts ...QueryOption) (*CurrencyData, error)
+	SaveRate(ctx context.Context, c *entities.Coin) error
+	Get(ctx context.Context, CoinTitle string, opts ...QueryOption) (*CoinData, error)
 }
 
 /*
