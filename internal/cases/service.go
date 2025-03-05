@@ -6,13 +6,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO
- конструктор сервиса
-storage и client
-
 type Service struct {
 	storage Storage
-	client Client
+	client  Client
 }
 
 func NewService(storage Storage, client Client) (*Service, error) {
@@ -24,9 +20,10 @@ func NewService(storage Storage, client Client) (*Service, error) {
 	}
 	return &Service{
 		storage: storage,
-		client: client,
+		client:  client,
 	}, nil
 }
+
 type AggFunc int
 
 const (
