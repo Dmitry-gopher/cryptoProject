@@ -1,6 +1,5 @@
 package postgres
 
-// TODO подумать над обработкой ошибок (internal err).
 import (
 	"context"
 	"cryptoProject/internal/cases"
