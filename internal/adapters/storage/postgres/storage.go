@@ -84,44 +84,26 @@ func (s *PgStorage) Get(ctx context.Context, titles []string, opts ...cases.Opti
 	return coins, nil
 }
 
-var defaultTitles = []string{"BTC", "ETH"}
-
 func (s *PgStorage) GetUniqueTitles(ctx context.Context) ([]string, error) {
-
-	rows, err := s.pool.Query(ctx, "SELECT DISTINCT title FROM coins;")
+	rows, err := s.pool.Query(ctx, "SELECT DISTINCT title FROM coins")
 	if err != nil {
 		return nil, errors.Wrap(entities.ErrStorageGetFailed, "failed to execute query")
 	}
 	defer rows.Close()
 
-	var allTitles []string
+	var titles []string
 	for rows.Next() {
 		var title string
 		err = rows.Scan(&title)
 		if err != nil {
 			return nil, errors.Wrap(entities.ErrStorageGetFailed, "failed to scan row")
 		}
-		allTitles = append(allTitles, title)
+		titles = append(titles, title)
 	}
 
 	if rows.Err() != nil {
 		return nil, errors.Wrap(rows.Err(), "some row error")
 	}
 
-	for _, title := range allTitles {
-		if !contains(defaultTitles, title) {
-			defaultTitles = append(defaultTitles, title)
-		}
-	}
-
-	return defaultTitles, nil
-}
-
-func contains(titles []string, title string) bool {
-	for _, t := range titles {
-		if t == title {
-			return true
-		}
-	}
-	return false
+	return titles, nil
 }

@@ -93,6 +93,29 @@ func (s *Service) GetLastRate(ctx context.Context, titles []string) ([]entities.
 	return coins, nil
 }
 
-//метод вызыввает метод со списком монет который получает из бд. список мб пустым
-//далее вызывает метод парсинга и туда передает этот список (если пустой список - дефолтные тайтлы, иначе не пустой)
-//далее метод стор
+func (s *Service) UpdateCoinRates(ctx context.Context) error {
+	titles, err := s.storage.GetUniqueTitles(ctx)
+	if err != nil {
+		return errors.Wrap(entities.ErrStorageGetFailed, "Failed to get unique titles")
+	}
+
+	coins, err := s.client.GetCurrentRates(ctx, titles)
+	if err != nil {
+		return errors.Wrap(entities.ErrStorageGetFailed, "Failed to get current rates")
+	}
+
+	if err := s.storage.Store(ctx, coins); err != nil {
+		return errors.Wrap(err, "Failed to store coins")
+	}
+
+	return nil
+}
+
+//слой портов (будет интерфейс сервиса). структура сервера, конструктор, метод запуска Run
+//внутри будут вызываться методы сервиса, кроме последнего
+//на уровне портов не можем использовать entities - нужен отдельный пакет - dto (2 шт: coin и слайс coin)
+//для них конструктор не нужен
+//пакеты chi.mux - для роутинга, http-константы ошибок для обработки их
+//
+//swagger - для документации. собрать application - отдельный слой app (метод Run - запуск всего)
+//чтобы парсинг был в фоне - cron джоба (пакет cron)

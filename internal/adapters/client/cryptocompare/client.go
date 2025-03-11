@@ -12,22 +12,27 @@ import (
 )
 
 type CryptoCompareClient struct {
-	// поле со списком дефолтных монет
-	httpClient *http.Client
-	baseURL    string
+	defaultTitles []string
+	httpClient    *http.Client
+	baseURL       string
 }
 
-func NewCryptoCompareClient() *CryptoCompareClient {
-	return &CryptoCompareClient{
-		httpClient: &http.Client{},
-		baseURL:    "https://min-api.cryptocompare.com/data/pricemulti",
+func NewCryptoCompareClient(defaultTitles []string) (*CryptoCompareClient, error) {
+	if len(defaultTitles) == 0 {
+		return nil, errors.Wrap(entities.ErrInvalidParameter, "default titles can't be empty")
 	}
+
+	return &CryptoCompareClient{
+		defaultTitles: defaultTitles,
+		httpClient:    &http.Client{},
+		baseURL:       "https://min-api.cryptocompare.com/data/pricemulti",
+	}, nil
 }
 
 func (c *CryptoCompareClient) GetCurrentRates(ctx context.Context, titles []string) ([]entities.Coin, error) {
 	if len(titles) == 0 {
-		return nil, errors.Wrap(entities.ErrInvalidParameter, "no titles")
-	} // возвращать не нил, а список дефолтных монет
+		titles = c.defaultTitles
+	}
 
 	u, err := url.Parse(c.baseURL)
 	if err != nil {
