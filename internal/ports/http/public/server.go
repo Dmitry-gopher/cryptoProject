@@ -1,4 +1,4 @@
-package v1
+package public
 
 import (
 	"cryptoProject/internal/entities"
@@ -29,25 +29,26 @@ func NewServer(service Service) (*Server, error) {
 }
 
 func (s *Server) Run() {
-	s.router.Get("/v1/getmaxrate", s.GetMaxRate)
-	s.router.Get("/v1/getminrate", s.GetMinRate)
-	s.router.Get("/v1/getavgrate", s.GetAvgRate)
-	s.router.Get("/v1/getlastrate", s.GetLastRate)
+	s.router.Get("/v1/getmax", s.GetMaxRate)
+	s.router.Get("/v1/getmin", s.GetMinRate)
+	s.router.Get("/v1/getavg", s.GetAvgRate)
+	s.router.Get("/v1/getlast", s.GetLastRate)
 	if err := http.ListenAndServe(":8080", s.router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
-	} // как лучше обработать ошибку?
+	}
 }
 
-// @Summary Get max coin rates
-// @Description Returns a list of coins with their max rates in USD
-// @Tags coins
-// @Accept json
-// @Produce json
-// @Param titles query string true "List of coin titles (separated by commas, for example: BTC,ETH)"
-// @Success 200 {object} dto.CoinsDTO "Coin list"
-// @Failure 400 {object} map[string]string "Request error"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /v1 [get]
+// @Summary		Get max coin rates
+// @Description	Returns a list of coins with their max rates in USD
+// @Tags			coins
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	dto.CoinsDTO	"Coin list"
+// @Failure		400
+// @Failure		404
+// @Failure		500
+// @Router			/getmax [get]
+// @Param			titles	query	string	true	"List of coin titles (separated by commas, for example: BTC,ETH)"
 func (s *Server) GetMaxRate(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	titlesStr := req.URL.Query().Get("titles")
@@ -62,7 +63,7 @@ func (s *Server) GetMaxRate(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "No max rate", http.StatusNotFound)
 	}
 
-	var data dto.CoinsDTO // посмотреть про дто, почему не используем entities
+	var data dto.CoinsDTO
 	for _, coin := range coins {
 		data = append(data, dto.CoinDTO{
 			Title:       coin.Title,
@@ -79,16 +80,17 @@ func (s *Server) GetMaxRate(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 }
 
-// @Summary Get min coin rates
-// @Description Returns a list of coins with their min rates in USD
-// @Tags coins
-// @Accept json
-// @Produce json
-// @Param titles query string true "List of coin titles (separated by commas, for example: BTC,ETH)"
-// @Success 200 {array} entities.Coin "Coin list"
-// @Failure 400 {object} map[string]string "Request error"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /v1 [get]
+// @Summary		Get min coin rates
+// @Description	Returns a list of coins with their min rates in USD
+// @Tags			coins
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	dto.CoinsDTO	"Coin list"
+// @Failure		400
+// @Failure		404
+// @Failure		500
+// @Router			/getmin [get]
+// @Param			titles	query	string	true	"List of coin titles (separated by commas, for example: BTC,ETH)"
 func (s *Server) GetMinRate(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	titlesStr := req.URL.Query().Get("titles")
@@ -120,16 +122,17 @@ func (s *Server) GetMinRate(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 }
 
-// @Summary Get average coin rates
-// @Description Returns a list of coins with their average rates in USD
-// @Tags coins
-// @Accept json
-// @Produce json
-// @Param titles query string true "List of coin titles (separated by commas, for example: BTC,ETH)"
-// @Success 200 {array} entities.Coin "Coin list"
-// @Failure 400 {object} map[string]string "Request error"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /v1 [get]
+// @Summary		Get average coin rates
+// @Description	Returns a list of coins with their average rates in USD
+// @Tags			coins
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	dto.CoinsDTO	"Coin list"
+// @Failure		400
+// @Failure		404
+// @Failure		500
+// @Router			/getavg [get]
+// @Param			titles	query	string	true	"List of coin titles (separated by commas, for example: BTC,ETH)"
 func (s *Server) GetAvgRate(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	titlesStr := req.URL.Query().Get("titles")
@@ -161,16 +164,17 @@ func (s *Server) GetAvgRate(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 }
 
-// @Summary Get last coin rates
-// @Description Returns a list of coins with their latest rates in USD
-// @Tags coins
-// @Accept json
-// @Produce json
-// @Param titles query string true "List of coin titles (separated by commas, for example: BTC,ETH)"
-// @Success 200 {array} entities.Coin "Coin list"
-// @Failure 400 {object} map[string]string "Request error"
-// @Failure 500 {object} map[string]string "Internal server error"
-// @Router /v1 [get]
+// @Summary		Get last coin rates
+// @Description	Returns a list of coins with their latest rates in USD
+// @Tags			coins
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	dto.CoinsDTO	"Coin list"
+// @Failure		400
+// @Failure		404
+// @Failure		500
+// @Router			/getlast [get]
+// @Param			titles	query	string	true	"List of coin titles (separated by commas, for example: BTC,ETH)"
 func (s *Server) GetLastRate(rw http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	titlesStr := req.URL.Query().Get("titles")

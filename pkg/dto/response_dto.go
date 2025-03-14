@@ -1,9 +1,11 @@
 package dto
 
-type Coin struct {
-	Title       string  `json:"title"`
-	CurrentRate float64 `json:"current_rate"`
-	Timestamp   string  `json:"timestamp"`
+import "time"
+
+type CoinDTO struct {
+	Title       string    `json:"title"`
+	CurrentRate float64   `json:"current_rate"`
+	Timestamp   time.Time `json:"timestamp"`
 }
 
-type Coins []Coin
+type CoinsDTO []CoinDTO

@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  app:
+    image: crypto-api:local
+    container_name: ca-app
+    ports:
+        - "5000:5000" //??
+    depends_on:
+      - postgresql
+    networks:
+      - ca
+
+  postgresql:
+    image: postgres:14-alpine
+    container_name: ca-postgres
+    environment:
+      - POSTGRES_DB=mystorage
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - ca
+
+networks:
+  ca:

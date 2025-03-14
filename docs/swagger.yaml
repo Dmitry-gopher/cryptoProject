@@ -1,0 +1,135 @@
+basePath: /v1
+definitions:
+  dto.CoinDTO:
+    properties:
+      current_rate:
+        type: number
+      timestamp:
+        type: string
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server Crypto server
+  title: Crypto API
+  version: "1.0"
+paths:
+  /getavg:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of coins with their average rates in USD
+      parameters:
+      - description: 'List of coin titles (separated by commas, for example: BTC,ETH)'
+        in: query
+        name: titles
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coin list
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get average coin rates
+      tags:
+      - coins
+  /getlast:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of coins with their latest rates in USD
+      parameters:
+      - description: 'List of coin titles (separated by commas, for example: BTC,ETH)'
+        in: query
+        name: titles
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coin list
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get last coin rates
+      tags:
+      - coins
+  /getmax:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of coins with their max rates in USD
+      parameters:
+      - description: 'List of coin titles (separated by commas, for example: BTC,ETH)'
+        in: query
+        name: titles
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coin list
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get max coin rates
+      tags:
+      - coins
+  /getmin:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of coins with their min rates in USD
+      parameters:
+      - description: 'List of coin titles (separated by commas, for example: BTC,ETH)'
+        in: query
+        name: titles
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coin list
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get min coin rates
+      tags:
+      - coins
+swagger: "2.0"

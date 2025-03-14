@@ -107,15 +107,5 @@ func (s *Service) UpdateCoinRates(ctx context.Context) error {
 	if err := s.storage.Store(ctx, coins); err != nil {
 		return errors.Wrap(err, "Failed to store coins")
 	}
-
 	return nil
 }
-
-//слой портов (будет интерфейс сервиса). структура сервера, конструктор, метод запуска Run
-//внутри будут вызываться методы сервиса, кроме последнего
-//на уровне портов не можем использовать entities - нужен отдельный пакет - dto (2 шт: coin и слайс coin)
-//для них конструктор не нужен
-//пакеты chi.mux - для роутинга, http-константы ошибок для обработки их
-//
-//swagger - для документации. собрать application - отдельный слой app (метод Run - запуск всего)
-//чтобы парсинг был в фоне - cron джоба (пакет cron)
