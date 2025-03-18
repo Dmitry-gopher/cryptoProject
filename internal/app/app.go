@@ -56,7 +56,7 @@ func runCron(service *cases.Service) {
 			log.Printf("Failed to update coin rates: %v", err)
 		}
 	}
-	cron.AddFunc("@every 1m", updateFunc)
+	cron.AddFunc("@every 30s", updateFunc)
 	cron.Run()
 }
 
