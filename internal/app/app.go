@@ -6,84 +6,65 @@ import (
 	"cryptoProject/internal/adapters/storage/postgres"
 	"cryptoProject/internal/cases"
 	"cryptoProject/internal/ports/http/public"
-	"github.com/robfig/cron/v3"
+	cron2 "github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
 )
 
-type App struct {
-	client  *cryptocompare.CryptoCompareClient
-	storage *postgres.PgStorage
-	service *cases.Service
-	server  *public.Server
-	cron    *cron.Cron
-}
-
-func NewApp() *App {
-	return &App{}
-}
-
-func (a *App) Run(ctx context.Context) error {
-	if err := a.loadConfig(); err != nil {
-		return err
+func Run() {
+	if err := loadConfig(); err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	ctx = context.TODO()
-
+	ctx := context.Background()
 	defaultTitles := viper.GetStringSlice("client.default_titles")
 	connString := viper.GetString("postgresql.conn_string")
 
-	client, err := cryptocompare.NewCryptoCompareClient(defaultTitles)
-	if err != nil {
-		return err
-	}
-	a.client = client
-
 	storage, err := postgres.NewPgStorage(ctx, connString)
 	if err != nil {
-		return err
+		log.Fatalf("Failed to create storage: %v", err)
 	}
-	a.storage = storage
+
+	client, err := cryptocompare.NewCryptoCompareClient(defaultTitles)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
 
 	service, err := cases.NewService(storage, client)
 	if err != nil {
-		return err
+		log.Fatalf("Failed to create service: %v", err)
 	}
-	a.service = service
+
+	go runCron(service)
 
 	server, err := public.NewServer(service)
 	if err != nil {
-		return err
+		log.Fatalf("Failed to create server: %v", err)
 	}
-	a.server = server
 	server.Run()
-
-	a.cron = cron.New()
-	_, err = a.cron.AddFunc("@every 5m", func() {
-		if err := a.service.UpdateCoinRates(ctx); err != nil {
-			log.Printf("Failed to update coins rates: %v", err)
-		}
-	})
-	if err != nil {
-		return err
-	}
-	a.cron.Start()
-	<-ctx.Done()
-	a.cron.Stop()
-
-	return nil
+	log.Println("Server is running")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func (a *App) loadConfig() error {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("configs")
-	viper.SetConfigType("yaml")
+func runCron(service *cases.Service) {
+	cron := cron2.New()
+	ctx := context.Background()
+	updateFunc := func() {
+		err := service.UpdateCoinRates(ctx)
+		if err != nil {
+			log.Printf("Failed to update coin rates: %v", err)
+		}
+	}
+	cron.AddFunc("@every 1m", updateFunc)
+	cron.Run()
+}
 
+func loadConfig() error {
+	viper.SetConfigFile("./deployment/configs/config.yaml")
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
 
 	return nil
 }
-
-// где вызывать NewCoin()??

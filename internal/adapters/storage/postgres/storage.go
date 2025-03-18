@@ -6,6 +6,7 @@ import (
 	"cryptoProject/internal/entities"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
+	"log"
 )
 
 type PgStorage struct {
@@ -29,7 +30,7 @@ func (s *PgStorage) Store(ctx context.Context, coins []entities.Coin) error {
 	}
 
 	for _, coin := range coins {
-		_, err := tx.Exec(ctx, "INSERT INTO coins (title, current_price, timestamp) VALUES ($1, $2, $3);",
+		_, err := tx.Exec(ctx, "INSERT INTO coins (title, current_rate, timestamp) VALUES ($1, $2, $3);",
 			coin.Title, coin.CurrentRate, coin.Timestamp)
 		if err != nil {
 			return errors.Wrap(entities.ErrStorage, "failed to store rate into storage")
@@ -49,18 +50,48 @@ func (s *PgStorage) Get(ctx context.Context, titles []string, opts ...cases.Opti
 	for _, opt := range opts {
 		opt(options)
 	}
+	log.Println(opts, options)
 
 	var query string
 	switch options.FuncType {
 	case cases.Max:
-		query = "SELECT title, MAX(current_price) as max_price FROM coins WHERE title = ANY($1) GROUP BY title;"
+		query = `
+            SELECT title, MAX(current_rate) as max_rate 
+            FROM coins 
+            WHERE title = ANY($1)
+            AND timestamp >= CURRENT_DATE 
+            AND timestamp < CURRENT_DATE + INTERVAL '1 day' 
+            GROUP BY title;
+        `
 	case cases.Min:
-		query = "SELECT title, MIN(current_price) as min_price FROM coins WHERE title = ANY($1) GROUP BY title;"
+		query = `
+            SELECT title, MIN(current_rate) as min_rate 
+            FROM coins 
+            WHERE title = ANY($1) 
+            AND timestamp >= CURRENT_DATE 
+            AND timestamp < CURRENT_DATE + INTERVAL '1 day' 
+            GROUP BY title;
+        `
 	case cases.Avg:
-		query = "SELECT title, AVG(current_price) as avg_price FROM coins WHERE title = ANY($1) GROUP BY title;"
+		query = `
+            SELECT title, AVG(current_rate) as avg_rate 
+            FROM coins 
+            WHERE title = ANY($1) 
+            AND timestamp >= CURRENT_DATE 
+            AND timestamp < CURRENT_DATE + INTERVAL '1 day' 
+            GROUP BY title;
+        `
 	default:
-		query = "SELECT DISTINCT ON (title) title, current_price, timestamp FROM coins WHERE title = ANY($1) ORDER BY title, timestamp DESC;"
+		query = `
+            SELECT DISTINCT ON (title) title, current_rate, timestamp 
+            FROM coins 
+            WHERE title = ANY($1) 
+            ORDER BY title, timestamp DESC;
+        `
 	}
+
+	log.Println("Titles passed to Get:", titles)
+	log.Println("Aggregation type:", options.FuncType.String())
 
 	rows, err := s.pool.Query(ctx, query, titles)
 	if err != nil {
@@ -68,15 +99,27 @@ func (s *PgStorage) Get(ctx context.Context, titles []string, opts ...cases.Opti
 	}
 	defer rows.Close()
 
+	log.Printf("Writing query: %s from Get method with titles: %v", query, titles)
+
 	var coins []entities.Coin
 	for rows.Next() {
 		var coin entities.Coin
-		err = rows.Scan(&coin.Title, &coin.CurrentRate, &coin.Timestamp)
-		if err != nil {
-			return nil, errors.Wrap(entities.ErrStorageGetFailed, "failed to scan row")
+		if options.FuncType == cases.Max || options.FuncType == cases.Min || options.FuncType == cases.Avg {
+			var rate float64
+			err = rows.Scan(&coin.Title, &rate)
+			if err != nil {
+				return nil, errors.Wrap(entities.ErrStorageGetFailed, "failed to scan row")
+			}
+			coin.CurrentRate = rate
+		} else {
+			err = rows.Scan(&coin.Title, &coin.CurrentRate, &coin.Timestamp)
+			if err != nil {
+				return nil, errors.Wrap(entities.ErrStorageGetFailed, "failed to scan row")
+			}
 		}
 		coins = append(coins, coin)
 	}
+
 	if rows.Err() != nil {
 		return nil, errors.Wrap(rows.Err(), "some row error")
 	}
