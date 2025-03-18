@@ -64,16 +64,12 @@ func (c *CryptoCompareClient) GetCurrentRates(ctx context.Context, titles []stri
 	}
 
 	var coins []entities.Coin
-	for title, rates := range data {
-		rate, ok := rates["USD"]
-		if !ok {
-			return nil, errors.Wrapf(entities.ErrInvalidParameter, "Rate in USD isn't available for %s", title)
+	for title, rate := range data {
+		coin, err := entities.NewCoin(title, rate["USD"], time.Now())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to store coin")
 		}
-		coins = append(coins, entities.Coin{
-			Title:       title,
-			CurrentRate: rate,
-			Timestamp:   time.Now(),
-		})
+		coins = append(coins, *coin)
 	}
 
 	return coins, nil

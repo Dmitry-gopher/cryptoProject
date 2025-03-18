@@ -190,6 +190,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/getnew": {
+            "get": {
+                "description": "Returns a list of coins with their latest rates in USD and stores them in the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "coins"
+                ],
+                "summary": "Get new coin rates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "List of coin titles (separated by commas, for example: BTC,ETH)",
+                        "name": "titles",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Coin list",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.CoinDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {

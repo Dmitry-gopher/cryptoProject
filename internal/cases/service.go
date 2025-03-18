@@ -109,3 +109,15 @@ func (s *Service) UpdateCoinRates(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (s *Service) GetNewCoinRates(ctx context.Context, title []string) ([]entities.Coin, error) {
+	coins, err := s.client.GetCurrentRates(ctx, title)
+	if err != nil {
+		return nil, errors.Wrap(entities.ErrStorageGetFailed, "Failed to get new coin rates")
+	}
+
+	if err := s.storage.Store(ctx, coins); err != nil {
+		return nil, errors.Wrap(err, "Failed to store new coin rates")
+	}
+	return coins, nil
+}

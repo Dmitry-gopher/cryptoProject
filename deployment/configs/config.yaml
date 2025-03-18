@@ -1,0 +1,11 @@
+client:
+  default_titles: "BTC, ETH"
+
+
+postgresql:
+  conn_string: "postgres://postgres:postgres@postgres:5432/mystorage?sslmode=disable"
+  host: postgresql
+  port: 5432
+  username: postgres
+  password: postgres
+  database: mystorage

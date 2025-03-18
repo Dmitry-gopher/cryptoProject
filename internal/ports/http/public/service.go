@@ -10,4 +10,5 @@ type Service interface {
 	GetMinRate(ctx context.Context, titles []string) ([]entities.Coin, error)
 	GetAvgRate(ctx context.Context, titles []string) ([]entities.Coin, error)
 	GetLastRate(ctx context.Context, titles []string) ([]entities.Coin, error)
+	GetNewCoinRates(ctx context.Context, title []string) ([]entities.Coin, error)
 }

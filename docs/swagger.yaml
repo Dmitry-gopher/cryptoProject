@@ -132,4 +132,34 @@ paths:
       summary: Get min coin rates
       tags:
       - coins
+  /getnew:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of coins with their latest rates in USD and stores
+        them in the database
+      parameters:
+      - description: 'List of coin titles (separated by commas, for example: BTC,ETH)'
+        in: query
+        name: titles
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Coin list
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get new coin rates
+      tags:
+      - coins
 swagger: "2.0"

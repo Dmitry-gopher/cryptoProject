@@ -33,6 +33,7 @@ func (s *Server) Run() {
 	s.router.Get("/v1/getmin", s.GetMinRate)
 	s.router.Get("/v1/getavg", s.GetAvgRate)
 	s.router.Get("/v1/getlast", s.GetLastRate)
+	s.router.Get("/v1/getnew", s.GetNewCoinRates)
 	if err := http.ListenAndServe(":8080", s.router); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
@@ -187,6 +188,48 @@ func (s *Server) GetLastRate(rw http.ResponseWriter, req *http.Request) {
 	}
 	if coins == nil {
 		http.Error(rw, "No last rate", http.StatusNotFound)
+	}
+
+	var data dto.CoinsDTO
+	for _, coin := range coins {
+		data = append(data, dto.CoinDTO{
+			Title:       coin.Title,
+			CurrentRate: coin.CurrentRate,
+			Timestamp:   coin.Timestamp,
+		})
+	}
+
+	rw.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(data); err != nil {
+		http.Error(rw, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	rw.WriteHeader(http.StatusOK)
+}
+
+// @Summary		Get new coin rates
+// @Description	Returns a list of coins with their latest rates in USD and stores them in the database
+// @Tags			coins
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	dto.CoinsDTO	"Coin list"
+// @Failure		400
+// @Failure		404
+// @Failure		500
+// @Router			/getnew [get]
+// @Param			titles	query	string	true	"List of coin titles (separated by commas, for example: BTC,ETH)"
+func (s *Server) GetNewCoinRates(rw http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	titlesStr := req.URL.Query().Get("titles")
+	titles := strings.Split(titlesStr, ",")
+
+	coins, err := s.service.GetNewCoinRates(ctx, titles)
+	if err != nil {
+		http.Error(rw, "Failed to get new coin rates", http.StatusBadRequest)
+		return
+	}
+	if coins == nil {
+		http.Error(rw, "No new coin rates", http.StatusNotFound)
 	}
 
 	var data dto.CoinsDTO
